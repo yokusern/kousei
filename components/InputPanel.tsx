@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef, useEffect } from "react";
+
 type InputPanelProps = {
   value: string;
   onChange: (value: string) => void;
@@ -15,7 +17,16 @@ export default function InputPanel({
   onClear,
   isLoading,
 }: InputPanelProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isDisabled = isLoading || !value.trim();
+
+  // 自動リサイズ
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
 
   return (
     <section style={styles.card}>
@@ -27,11 +38,13 @@ export default function InputPanel({
       </div>
 
       <textarea
+        ref={textareaRef}
         id="text-input"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="提案文、Note記事の下書き、ブログ文などを貼り付けてください。"
         style={styles.textarea}
+        rows={1}
       />
 
       <p style={styles.helpText}>
@@ -53,11 +66,11 @@ export default function InputPanel({
 
         <button
           onClick={onClear}
-          disabled={isLoading}
+          disabled={isLoading || value === ""}
           style={{
             ...styles.secondaryButton,
-            opacity: isLoading ? 0.6 : 1,
-            cursor: isLoading ? "not-allowed" : "pointer",
+            opacity: isLoading || value === "" ? 0.6 : 1,
+            cursor: isLoading || value === "" ? "not-allowed" : "pointer",
           }}
         >
           クリア
@@ -92,8 +105,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   textarea: {
     width: "100%",
-    minHeight: 220,
-    resize: "vertical",
+    minHeight: 120,
+    maxHeight: 300,
+    resize: "none",
     borderRadius: 12,
     border: "1px solid #d1d5db",
     padding: 12,
@@ -101,6 +115,8 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.6,
     outline: "none",
     boxSizing: "border-box",
+    overflowY: "hidden",
+    fontFamily: "inherit",
   },
   helpText: {
     fontSize: 12,
