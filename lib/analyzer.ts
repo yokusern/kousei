@@ -1,4 +1,4 @@
-import type { AnalysisResult, Highlight } from "./types";
+import type { AnalysisResult, Highlight, AnalysisMode } from "./types";
 
 export interface AnalyzerOptions {
   templatePatterns?: string[];
@@ -156,16 +156,27 @@ export function analyzeSentence(
 }
 
 /**
- * サマリー文生成
+ * サマリー文生成（モード別）
  */
-function buildSummary(score: number, highlightCount: number): string {
-  if (score >= 75) {
-    return `定型表現や抽象語がやや多く、全体として整いすぎた印象があります。特に気になる ${highlightCount} 箇所を見直すと、より自分の言葉に近づきます。`;
-  }
-  if (score >= 45) {
-    return `一部にAIっぽく見えやすい表現があります。体験・数字・判断理由を少し足すと、自然さが上がりやすいです。`;
-  }
-  return `AIっぽさは比較的低めです。必要に応じて、少し具体例や背景を足すとさらに説得力が増します。`;
+function buildSummary(score: number, highlightCount: number, mode: AnalysisMode = "proposal"): string {
+  const baseMessages = {
+    proposal: {
+      high: `この提案文は、抽象的な表現がやや多く、経験や実績の具体例が少ないです。特に気になる ${highlightCount} 箇所を見直すと、クライアントに信頼される提案に近づきます。`,
+      medium: `一部に信頼性に欠ける表現があります。具体的な実績やスキルを明記すると、提案の説得力が上がります。`,
+      low: `提案文としての信頼性は比較的高めです。必要に応じて、さらに具体例を足すとより強固な提案になります。`,
+    },
+    note: {
+      high: `この記事は、一般論が続きやすく、あなた自身の体験や感情を足せる余地があります。特に気になる ${highlightCount} 箇所を改善すると、読者に共感されやすくなります。`,
+      medium: `一部に共感を得にくい表現があります。個人的なエピソードや感情を加えると、記事に深みが出ます。`,
+      low: `記事としての共感性は比較的高めです。必要に応じて、さらに個性的な表現を足すと読者に響きやすくなります。`,
+    },
+  };
+
+  const messages = baseMessages[mode];
+
+  if (score >= 75) return messages.high;
+  if (score >= 45) return messages.medium;
+  return messages.low;
 }
 
 /**
@@ -175,7 +186,8 @@ function buildSummary(score: number, highlightCount: number): string {
  */
 export function analyzeText(
   text: string,
-  options: AnalyzerOptions = DEFAULT_OPTIONS
+  options: AnalyzerOptions = DEFAULT_OPTIONS,
+  mode: AnalysisMode = "proposal"
 ): AnalysisResult {
   const normalized = text.trim();
   const sentences = splitSentencesWithOffsets(normalized);
@@ -184,10 +196,13 @@ export function analyzeText(
     return {
       id: crypto.randomUUID(),
       score: 0,
-      summary: "解析できる文章がありませんでした。",
+      summary: mode === "proposal"
+        ? "解析できる提案文がありませんでした。"
+        : "解析できる文章がありませんでした。",
       highlights: [],
       analyzedAt: new Date().toISOString(),
       inputText: normalized,
+      mode,
     };
   }
 
@@ -218,7 +233,7 @@ export function analyzeText(
   }));
 
   // サマリー生成
-  const summary = buildSummary(normalizedScore, highlights.length);
+  const summary = buildSummary(normalizedScore, highlights.length, mode);
 
   return {
     id: crypto.randomUUID(),
@@ -227,5 +242,6 @@ export function analyzeText(
     highlights,
     analyzedAt: new Date().toISOString(),
     inputText: normalized,
+    mode,
   };
 }

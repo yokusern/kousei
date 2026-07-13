@@ -95,3 +95,18 @@ export const LLM_CONFIG = {
   model: process.env.ANALYSIS_MODEL || "gpt-4o-mini",
   apiKey: process.env.LLM_API_KEY || "",
 } as const;
+
+// 解析モード
+export const ANALYSIS_MODES = ["proposal", "note"] as const;
+
+// モード別の表示名
+export const MODE_LABELS = {
+  proposal: "クラウドソーシング提案文",
+  note: "Note記事",
+} as const;
+
+// モード別の説明文
+export const MODE_DESCRIPTIONS = {
+  proposal: "クライアントに信頼される提案文に整えます",
+  note: "読者に共感される記事に整えます",
+} as const;

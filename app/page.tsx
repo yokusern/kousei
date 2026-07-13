@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { AnalysisResult } from "@/lib/types";
+import type { AnalysisResult, AnalysisMode } from "@/lib/types";
 import InputPanel from "@/components/InputPanel";
 import ResultSummary from "@/components/ResultSummary";
 import HighlightList from "@/components/HighlightList";
@@ -16,6 +16,7 @@ export default function Page() {
   const [history, setHistory] = useState<AnalysisResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState<AnalysisMode>("proposal");
 
   useEffect(() => {
     try {
@@ -49,12 +50,12 @@ export default function Page() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, mode }),
       });
 
       if (!res.ok) {
         const err = await res.json().catch(() => null);
-        throw new Error(err?.error ?? "解析に失敗しました");
+        throw new Error(err?.error ?? "文章をうまく解析できませんでした");
       }
 
       const data: AnalysisResult = await res.json();
@@ -79,6 +80,10 @@ export default function Page() {
     setText(item.inputText);
     setResult(item);
     setError("");
+    // 履歴のモードを復元
+    if (item.mode) {
+      setMode(item.mode);
+    }
   };
 
   const handleClearHistory = () => {
@@ -90,18 +95,21 @@ export default function Page() {
     <main style={styles.page}>
       <div style={styles.container}>
         <header style={styles.header}>
-          <p style={styles.eyebrow}>スマホ向け 1画面MVP</p>
+          <p style={styles.eyebrow}>副業・発信のための文章OS</p>
           <h1 style={styles.title}>AIっぽさ可視化ツール</h1>
           <p style={styles.description}>
-            文章の「AIっぽく見えやすい箇所」をざっくり見つけて、
-            自分の言葉に寄せるヒントを返します。
+            クラウドソーシング提案文やNote記事の「AIっぽさ」を見える化して、
+            <br />
+            自分の言葉に整えます。
           </p>
         </header>
 
         <div style={styles.section}>
           <InputPanel
             value={text}
+            mode={mode}
             onChange={setText}
+            onModeChange={setMode}
             onAnalyze={handleAnalyze}
             onClear={handleClear}
             isLoading={isLoading}
@@ -118,7 +126,7 @@ export default function Page() {
         {result && (
           <>
             <div style={styles.section}>
-              <ResultSummary score={result.score} summary={result.summary} />
+              <ResultSummary score={result.score} summary={result.summary} mode={result.mode} />
             </div>
 
             <div style={styles.section}>
@@ -144,7 +152,7 @@ const styles: Record<string, React.CSSProperties> = {
     minHeight: "100vh",
     background:
       "linear-gradient(to bottom, #f8fafc 0%, #ffffff 40%, #f8fafc 100%)",
-    padding: "20px 16px 40px",
+    padding: "16px 16px 40px",
   },
   container: {
     width: "100%",
@@ -153,6 +161,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   header: {
     marginBottom: 20,
+    textAlign: "center",
   },
   eyebrow: {
     margin: 0,
@@ -175,7 +184,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#4b5563",
   },
   section: {
-    marginTop: 16,
+    marginTop: 12,
   },
   errorBox: {
     marginTop: 16,

@@ -1,10 +1,14 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import type { AnalysisMode } from "@/lib/types";
+import ModeSelector from "./ModeSelector";
 
 type InputPanelProps = {
   value: string;
+  mode: AnalysisMode;
   onChange: (value: string) => void;
+  onModeChange: (mode: AnalysisMode) => void;
   onAnalyze: () => void;
   onClear: () => void;
   isLoading: boolean;
@@ -12,7 +16,9 @@ type InputPanelProps = {
 
 export default function InputPanel({
   value,
+  mode,
   onChange,
+  onModeChange,
   onAnalyze,
   onClear,
   isLoading,
@@ -29,54 +35,65 @@ export default function InputPanel({
   }, [value]);
 
   return (
-    <section style={styles.card}>
-      <div style={styles.labelRow}>
-        <label htmlFor="text-input" style={styles.label}>
-          文章を入力
-        </label>
-        <span style={styles.count}>{value.length}文字</span>
-      </div>
+    <>
+      {/* モードセレクタ */}
+      <ModeSelector value={mode} onChange={onModeChange} />
 
-      <textarea
-        ref={textareaRef}
-        id="text-input"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="提案文、Note記事の下書き、ブログ文などを貼り付けてください。"
-        style={styles.textarea}
-        rows={1}
-      />
+      <section style={styles.card}>
+        <div style={styles.labelRow}>
+          <label htmlFor="text-input" style={styles.label}>
+            文章を入力
+          </label>
+          <span style={styles.count}>{value.length}文字</span>
+        </div>
 
-      <p style={styles.helpText}>
-        AIっぽく見えやすい表現をざっくり可視化し、直し方のヒントを返します。
-      </p>
+        <textarea
+          ref={textareaRef}
+          id="text-input"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={
+            mode === "proposal"
+              ? "提案文、応募文などを貼り付けてください..."
+              : "記事本文、下書きなどを貼り付けてください..."
+          }
+          style={styles.textarea}
+          rows={1}
+        />
 
-      <div style={styles.buttonRow}>
-        <button
-          onClick={onAnalyze}
-          disabled={isDisabled}
-          style={{
-            ...styles.primaryButton,
-            opacity: isDisabled ? 0.6 : 1,
-            cursor: isDisabled ? "not-allowed" : "pointer",
-          }}
-        >
-          {isLoading ? "解析中..." : "解析する"}
-        </button>
+        <p style={styles.helpText}>
+          {mode === "proposal"
+            ? "クライアントに信頼される提案文に整えます"
+            : "読者に共感される記事に整えます"}
+        </p>
 
-        <button
-          onClick={onClear}
-          disabled={isLoading || value === ""}
-          style={{
-            ...styles.secondaryButton,
-            opacity: isLoading || value === "" ? 0.6 : 1,
-            cursor: isLoading || value === "" ? "not-allowed" : "pointer",
-          }}
-        >
-          クリア
-        </button>
-      </div>
-    </section>
+        <div style={styles.buttonRow}>
+          <button
+            onClick={onAnalyze}
+            disabled={isDisabled}
+            style={{
+              ...styles.primaryButton,
+              opacity: isDisabled ? 0.6 : 1,
+              cursor: isDisabled ? "not-allowed" : "pointer",
+            }}
+          >
+            {isLoading ? "少しお待ちください..." : "解析する"}
+          </button>
+
+          <button
+            onClick={onClear}
+            disabled={isLoading || value === ""}
+            style={{
+              ...styles.secondaryButton,
+              opacity: isLoading || value === "" ? 0.6 : 1,
+              cursor: isLoading || value === "" ? "not-allowed" : "pointer",
+            }}
+          >
+            クリア
+          </button>
+        </div>
+      </section>
+    </>
   );
 }
 

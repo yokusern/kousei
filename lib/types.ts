@@ -6,6 +6,15 @@ export type Highlight = {
   hint: string;
 };
 
+// 解析モード
+export type AnalysisMode = "proposal" | "note";
+
+// APIリクエスト型
+export type AnalyzeRequest = {
+  text: string;
+  mode?: AnalysisMode;
+};
+
 export type AnalysisResult = {
   score: number;
   summary: string;
@@ -13,4 +22,5 @@ export type AnalysisResult = {
   analyzedAt: string;
   inputText: string;
   id: string;
+  mode?: AnalysisMode;
 };

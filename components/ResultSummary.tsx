@@ -1,25 +1,44 @@
 "use client";
 
+import type { AnalysisMode } from "@/lib/types";
+
 type ResultSummaryProps = {
   score: number;
   summary: string;
+  mode?: AnalysisMode;
 };
 
-function getScoreLabel(score: number) {
-  if (score >= 71) return "高め";
-  if (score >= 31) return "中程度";
-  return "低め";
+function getScoreLabel(score: number, mode: AnalysisMode = "proposal") {
+  const labels = {
+    proposal: {
+      high: "信頼性: 低め",
+      medium: "信頼性: 普通",
+      low: "信頼性: 高め",
+    },
+    note: {
+      high: "共感性: 低め",
+      medium: "共感性: 普通",
+      low: "共感性: 高め",
+    },
+  };
+
+  const selected = labels[mode] || labels.proposal;
+  if (score >= 71) return selected.high;
+  if (score >= 31) return selected.medium;
+  return selected.low;
 }
 
-export default function ResultSummary({ score, summary }: ResultSummaryProps) {
+export default function ResultSummary({ score, summary, mode = "proposal" }: ResultSummaryProps) {
   return (
     <section style={styles.card}>
       <div style={styles.topRow}>
         <div>
-          <p style={styles.caption}>AIっぽさスコア</p>
+          <p style={styles.caption}>
+            {mode === "proposal" ? "提案文の信頼性スコア" : "記事の共感性スコア"}
+          </p>
           <h2 style={styles.score}>{score} / 100</h2>
         </div>
-        <div style={styles.badge}>{getScoreLabel(score)}</div>
+        <div style={styles.badge}>{getScoreLabel(score, mode)}</div>
       </div>
 
       <div style={styles.meterWrap}>
@@ -43,9 +62,19 @@ export default function ResultSummary({ score, summary }: ResultSummaryProps) {
 
       <div style={styles.guide}>
         <span>目安:</span>
-        <span>0〜30 低め</span>
-        <span>31〜70 中程度</span>
-        <span>71〜100 高め</span>
+        {mode === "proposal" ? (
+          <>
+            <span>0〜30 信頼性高め</span>
+            <span>31〜70 普通</span>
+            <span>71〜100 信頼性低め</span>
+          </>
+        ) : (
+          <>
+            <span>0〜30 共感性高め</span>
+            <span>31〜70 普通</span>
+            <span>71〜100 共感性低め</span>
+          </>
+        )}
       </div>
     </section>
   );
