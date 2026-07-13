@@ -6,7 +6,7 @@ export interface AnalyzerOptions {
   sentenceEndings?: string[];
 }
 
-export const DEFAULT_OPTIONS: AnalyzerOptions = {
+export const DEFAULT_OPTIONS: Required<AnalyzerOptions> = {
   templatePatterns: [
     "柔軟に対応",
     "高品質",
@@ -83,7 +83,7 @@ export function analyzeSentence(
   let hint = "具体的な経験・数字・判断理由を1つ足すと、あなた自身の文に見えやすくなります。";
 
   // テンプレート表現チェック
-  const templatePatterns = options.templatePatterns || DEFAULT_OPTIONS.templatePatterns;
+  const templatePatterns: string[] = options.templatePatterns || DEFAULT_OPTIONS.templatePatterns;
   const templateHits = templatePatterns.filter((p) => sentence.text.includes(p));
   if (templateHits.length > 0) {
     score += 18 + templateHits.length * 6;
@@ -92,7 +92,7 @@ export function analyzeSentence(
   }
 
   // 抽象語チェック
-  const abstractWords = options.abstractWords || DEFAULT_OPTIONS.abstractWords;
+  const abstractWords: string[] = options.abstractWords || DEFAULT_OPTIONS.abstractWords;
   const abstractHits = abstractWords.filter((w) => sentence.text.includes(w));
   if (abstractHits.length >= 2) {
     score += 14 + abstractHits.length * 4;
@@ -101,7 +101,7 @@ export function analyzeSentence(
   }
 
   // 文末の単調さチェック
-  const sentenceEndings = options.sentenceEndings || DEFAULT_OPTIONS.sentenceEndings;
+  const sentenceEndings: string[] = options.sentenceEndings || DEFAULT_OPTIONS.sentenceEndings;
   const allSentences = splitSentencesWithOffsets(fullText);
   const endingCounts = new Map<string, number>();
   for (const s of allSentences) {
