@@ -99,7 +99,8 @@ ${highlights.map((h, i) => `${i+1}. "${h.text}"`).join("\n")}
  */
 async function callLLMAPI(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  highlightCount: number
 ): Promise<string> {
   if (!LLM_CONFIG.enabled || !LLM_CONFIG.apiKey) {
     console.log("[LLM] Skipped - LLM not configured");
@@ -132,7 +133,7 @@ async function callLLMAPI(
   console.log("[LLM] Mock response - LLM API not yet implemented");
   // モックレスポンス（本番では削除）
   return JSON.stringify(
-    Array.from({ length: Math.min(highlights.length, 3) }, (_, i) => ({
+    Array.from({ length: Math.min(highlightCount, 3) }, (_, i) => ({
       index: i + 1,
       reason: `モック: 理由 ${i + 1}`,
       hint: `モック: ヒント ${i + 1}`,
@@ -168,7 +169,7 @@ export async function refineHighlightsWithLLM(
     const userPrompt = USER_PROMPT_TEMPLATES[mode](text, highlights);
 
     // LLMを呼び出し
-    const llmResponse = await callLLMAPI(systemPrompt, userPrompt);
+    const llmResponse = await callLLMAPI(systemPrompt, userPrompt, highlights.length);
 
     // JSONをパース
     const refined = JSON.parse(llmResponse) as Array<{
